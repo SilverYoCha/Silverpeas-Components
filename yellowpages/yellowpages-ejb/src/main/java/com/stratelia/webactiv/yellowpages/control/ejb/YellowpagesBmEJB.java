@@ -25,11 +25,9 @@ import com.stratelia.silverpeas.silvertrace.SilverTrace;
 import com.stratelia.webactiv.beans.admin.Group;
 import com.stratelia.webactiv.beans.admin.OrganizationController;
 import com.stratelia.webactiv.beans.admin.UserDetail;
-import com.stratelia.webactiv.beans.admin.UserFull;
 import com.stratelia.webactiv.util.DBUtil;
 import com.stratelia.webactiv.util.DateUtil;
 import com.stratelia.webactiv.util.JNDINames;
-import com.stratelia.webactiv.util.ResourceLocator;
 import com.stratelia.webactiv.util.contact.control.ContactBm;
 import com.stratelia.webactiv.util.contact.model.CompleteContact;
 import com.stratelia.webactiv.util.contact.model.ContactDetail;
@@ -60,6 +58,8 @@ import org.silverpeas.core.admin.OrganisationController;
 import org.silverpeas.search.indexEngine.model.FullIndexEntry;
 import org.silverpeas.search.indexEngine.model.IndexEngineProxy;
 import org.silverpeas.search.indexEngine.model.IndexEntryPK;
+
+import static com.silverpeas.yellowpages.YellowpagesComponentSettings.areUserExtraDataRequired;
 
 /**
  * This is the Yellowpages EJB-tier controller of the MVC. It is implemented as a session EJB. It
@@ -170,7 +170,7 @@ public class YellowpagesBmEJB implements YellowpagesBm {
             try {
               UserDetail userDetail = orga.getUserDetail(contactDetail.getUserId());
               if (userDetail != null) {
-                setContactAttributes(contactDetail, userDetail, orga, true);
+                setContactAttributes(contactDetail, userDetail, true);
                 contactDetailsR.add(contactDetail);
               } else {
                 contactDetail.setUserId(null);
@@ -433,7 +433,7 @@ public class YellowpagesBmEJB implements YellowpagesBm {
         OrganisationController orga = getOrganisationController();
         UserDetail userDetail = orga.getUserDetail(contactDetail.getUserId());
         if (userDetail != null) {
-          setContactAttributes(contactDetail, userDetail, orga, false);
+          setContactAttributes(contactDetail, userDetail, false);
         } else {
           contactDetail.setUserId(null);
           updateContact(contactDetail);
@@ -451,17 +451,11 @@ public class YellowpagesBmEJB implements YellowpagesBm {
   }
 
   private void setContactAttributes(ContactDetail contactDetail, UserDetail userDetail,
-      OrganisationController orga, boolean filterExtraInfos) {
+      boolean filterExtraInfos) {
     contactDetail.setFirstName(userDetail.getFirstName());
     contactDetail.setLastName(userDetail.getLastName());
     contactDetail.setEmail(userDetail.geteMail());
-    ResourceLocator yellowpagesSettings = new ResourceLocator(
-        "org.silverpeas.yellowpages.settings.yellowpagesSettings", "fr");
-    UserFull userFull;
-    if (!filterExtraInfos || yellowpagesSettings.getString("columns").contains("domain.")) {
-      userFull = orga.getUserFull(contactDetail.getUserId());
-      contactDetail.setUserFull(userFull);
-    }
+    contactDetail.setUserExtraDataRequired(!filterExtraInfos || areUserExtraDataRequired());
   }
 
   @Override
@@ -533,7 +527,7 @@ public class YellowpagesBmEJB implements YellowpagesBm {
               OrganisationController orga = getOrganisationController();
               UserDetail userDetail = orga.getUserDetail(contactDetail.getUserId());
               if (userDetail != null) {
-                setContactAttributes(contactDetail, userDetail, orga, true);
+                setContactAttributes(contactDetail, userDetail, true);
                 contactDetailsR.add(contactFatherDetail);
               } else {
                 contactDetail.setUserId(null);
@@ -848,7 +842,7 @@ public class YellowpagesBmEJB implements YellowpagesBm {
         OrganisationController orga = getOrganisationController();
         UserDetail userDetail = orga.getUserDetail(contactDetail.getUserId());
         if (userDetail != null) {
-          setContactAttributes(contactDetail, userDetail, orga, false);
+          setContactAttributes(contactDetail, userDetail, false);
         } else {
           contactDetail.setUserId(null);
           updateContact(contactDetail);
@@ -894,7 +888,7 @@ public class YellowpagesBmEJB implements YellowpagesBm {
               OrganisationController orga = getOrganisationController();
               UserDetail userDetail = orga.getUserDetail(contactDetail.getUserId());
               if (userDetail != null) {
-                setContactAttributes(contactDetail, userDetail, orga, true);
+                setContactAttributes(contactDetail, userDetail, true);
                 contactDetailsR.add(contactDetail);
               } else {
                 contactDetail.setUserId(null);
